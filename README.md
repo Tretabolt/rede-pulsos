@@ -16,6 +16,10 @@ testes/
   test_regressao.py   reproduz os números dos scripts soltos
 plot_bike.py      gráfico V da decisão: dia bom x dia de chuva
 rede_bike.png     o gráfico gerado
+invariancia_rede.py   carga sináptica total Q, contínua x discreta
+veto_custodia.py      veta só a aresta nociva, medida por ablação
+homeostase_exp3.py    três freios no Exp 3, até 40 ensaios
+arestas_validas.py    definição C3 de aresta válida (v1.0)
 ```
 
 ## Como rodar
@@ -115,6 +119,50 @@ o STDP clássico e o treino original não mudaram (regressão passa).
   útil e ultrapassa a inibição. Falta provavelmente homeostase — ou um
   teto excitatório — para a separação se manter.
 
+## Invariância da rede — o peso r* (17/11/2026)
+
+Arquivo: `invariancia_rede.py`. Carga sináptica total Q = ∫ I_sin dt no
+neurônio de decisão, contínua (soma I_sin·dt) x discreta
+(Σ w·τ_syn·(1−exp(−(T−t0)/τ_syn))). Dia bom, dt=0,1: Q = 1638,70
+contínua x 1628,50 discreta (+0,6%, convergindo: +1,3% em dt=0,2 até
++0,1% em dt=0,02). Sem o w, Q = 103,76 — errado por um fator 15,79 e
+sem convergir nunca: o análogo de esquecer o r*. A decisão é
+invariante em dt (0,2 / 0,1 / 0,05 / 0,02) nos 4 cenários da bicicleta.
+
+## Veto por custódia (17/11/2026)
+
+Arquivo: `veto_custodia.py`. Ablata cada aresta dos 7 estados
+congelados e veta só a nociva — aquela cuja ablação melhora o escore —
+contra o veto por rótulo, que zera a aresta de maior |w|. A aresta
+nociva é sempre o calor, em 5/7 estados (exceto inicial e Exp3-16, onde
+ele é inerte, delta 0); a margem melhora +7/+9/+7/+4 e os acertos vão
+de 2/4 para 3/4 em A16/A40 e de 2/4 para 4/4 em B16/B40/Exp3-40, sem
+nunca piorar. O veto por rótulo piora a margem em 6/7 estados — o sol
+é a aresta mais válida (delta −13 a −22); o único acerto dele, B40, é
+coincidência (lá o maior |w| é o calor, 30,0 x sol 29,8). Limites
+honestos: o VAI/FICA correto vem de fora; cada estado tem no máximo 1
+aresta nociva, então o veto simultâneo é exato aqui (um grafo maior
+precisaria de veto iterativo); arestas inertes ficam, então o ISC C3
+continua 0,33.
+
+## Homeostase no Exp 3 (17/11/2026)
+
+Arquivo: `homeostase_exp3.py`. Três freios no R-STDP com crédito do
+Exp 3, até 40 ensaios. Vencedor: **H1, STDP dependente do peso** — o
+Δw que aumenta o peso é multiplicado por (30−|w|)/30; perto do teto a
+potenciação some, enfraquecer continua normal. H1 em 40 ensaios: sol
+18,13, calor 8,89, chuva −12,39; bom 10 VAI, chuva 2 FICA, só sol 7
+VAI, só calor 0 FICA — **4/4**, e já em 16 ensaios também 4/4 (margem
+9). É a primeira vez que a rede acerta tudo treinando sozinha, sem veto
+depois. H2, teto excitatório em 20: 2/4 (o calor alcança o sol do mesmo
+jeito). H3, normalização sol+calor=18: 3/4, margem 2 (fraca demais para
+disparar só com o sol). Dois cuidados honestos: a margem sozinha diria
+que o baseline é o melhor (22 contra 15 do H1), porque premia
+disparar muito, não acertar — o que decide é acertos; e o H1 não é
+para sempre: em 80 ensaios regride para 3/4 (chuva 4 VAI, sol 23,97).
+Ele compra uma janela, de 16 a 40 ensaios com 4/4, não estabilidade
+eterna. Números conferidos rodando o script de novo em 17/11.
+
 ## Próximos passos — um de cada vez
 
 1. **Treinar com STDP:** ligar STDP nas sinapses excitatórias e repetir
@@ -123,7 +171,12 @@ o STDP clássico e o treino original não mudaram (regressão passa).
    *Feito em 13/11, ver seção acima: não basta STDP puro.*
 2. **Homeostase:** sem ela, o STDP aditivo satura w em 30 e a decisão
    dispara sem parar (já visto no teste de 2 LIFs).
+   *Feito em 17/11 (H1, ver seção acima): 4/4 de 16 a 40 ensaios.
+   Subiu para o GitHub em 17/11, com o relatório completo (seções
+   de invariância, veto e homeostase neste README).*
 3. **Arquitetura quântica sintética:** átomos como neurônios, acoplamento
    como sinapse — camada separada, não mistura com esta rede clássica.
+4. **Veto durante o treino:** aplicar a custódia no meio do aprendizado,
+   não só no fim. Nomeado em 17/11, ainda não escolhido.
 
 Os scripts soltos em `~/workspace/neuronio-hh/` não foram mexidos.

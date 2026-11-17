@@ -19,6 +19,7 @@ rede_bike.png     o gráfico gerado
 invariancia_rede.py   carga sináptica total Q, contínua x discreta
 veto_custodia.py      veta só a aresta nociva, medida por ablação
 homeostase_exp3.py    três freios no Exp 3, até 40 ensaios
+veto_durante_treino.py  veto por custódia a cada 8 ensaios, até 80 ensaios
 arestas_validas.py    definição C3 de aresta válida (v1.0)
 ```
 
@@ -163,6 +164,28 @@ para sempre: em 80 ensaios regride para 3/4 (chuva 4 VAI, sol 23,97).
 Ele compra uma janela, de 16 a 40 ensaios com 4/4, não estabilidade
 eterna. Números conferidos rodando o script de novo em 17/11.
 
+## Veto durante o treino (17/11/2026)
+
+Arquivo: `veto_durante_treino.py`. Exp 3 com um veto por custódia a
+cada 8 ensaios: abla cada aresta com a rede congelada (medir não pode
+treinar) e veta de vez só a nociva, congelando a aresta vetada (w=0 e
+STDP desligado nela, para o STDP não fazer ela crescer de novo).
+
+- **T1, veto com os 4 contextos:** o veto dispara uma vez só, no ensaio
+  32 (calor delta +4), e a rede trava em sol 30, calor 0, chuva −25,27;
+  bom 13 VAI, chuva 0 FICA, só sol 13 VAI, só calor 0 FICA — **4/4,
+  margem 26, em 40 e em 80 ensaios, igualzinho.** Estável de verdade.
+- **T2, H1 + veto:** o veto nunca dispara (o calor nunca fica nocivo
+  com a homeostase) e fica igual ao H1 sozinho, 4/4 em 40, 3/4 em 80.
+  A homeostase torna o veto redundante.
+- **T3, veto só com bom+chuva:** nunca dispara e fica igual ao
+  baseline, 2/4. Cuidado honesto: a nocividade do calor só aparece no
+  contexto só calor, que não é ensaio de treino — o veto durante o
+  treino depende de usar os contextos de teste (só sol, só calor) no
+  escore da ablação. Isso é vazamento do teste para o treino, do mesmo
+  tipo da recompensa do R-STDP, mas mais amplo, e está escrito no
+  script, não escondido.
+
 ## Próximos passos — um de cada vez
 
 1. **Treinar com STDP:** ligar STDP nas sinapses excitatórias e repetir
@@ -177,6 +200,8 @@ eterna. Números conferidos rodando o script de novo em 17/11.
 3. **Arquitetura quântica sintética:** átomos como neurônios, acoplamento
    como sinapse — camada separada, não mistura com esta rede clássica.
 4. **Veto durante o treino:** aplicar a custódia no meio do aprendizado,
-   não só no fim. Nomeado em 17/11, ainda não escolhido.
+   não só no fim.
+   *Feito em 17/11 (T1, ver seção acima): 4/4 em 40 e em 80 ensaios.
+   Subiu para o GitHub em 17/11, com o relatório completo.*
 
 Os scripts soltos em `~/workspace/neuronio-hh/` não foram mexidos.

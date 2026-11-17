@@ -29,8 +29,8 @@ W_CALOR = 12.0
 W_CHUVA = -30.0
 
 
-def montar_rede(w_sol=W_SOL, w_calor=W_CALOR, w_chuva=W_CHUVA, stdp=False):
-    rede = Rede()
+def montar_rede(w_sol=W_SOL, w_calor=W_CALOR, w_chuva=W_CHUVA, stdp=False, dt=0.1):
+    rede = Rede(dt=dt)
     sol = rede.adicionar_neuronio(LIF("sol"))
     calor = rede.adicionar_neuronio(LIF("calor"))
     chuva = rede.adicionar_neuronio(LIF("chuva"))

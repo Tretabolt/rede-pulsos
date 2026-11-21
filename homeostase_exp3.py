@@ -136,6 +136,11 @@ def main():
     for rotulo, (margem, acertos, p) in resultados.items():
         print(f"  {rotulo}: acertos {acertos}/4, margem {margem}, pesos={p}")
 
+    print("\n== Checagem aos 16 ensaios: H1 ==")
+    rede16 = montar_rstdp()
+    treinar_credito_homeostase(rede16, ensaios=16, modo="H1")
+    avaliar(rede16, "H1 16 ensaios")
+
     print("\n== Checagem de estabilidade: H1 até 80 ensaios ==")
     rede80 = montar_rstdp()
     treinar_credito_homeostase(rede80, ensaios=80, modo="H1")

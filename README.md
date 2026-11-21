@@ -32,6 +32,22 @@ python3 -m rede_pulsos.tarefa_bike
 python3 plot_bike.py
 ```
 
+## Convenção de medição (20/11/2026)
+
+Todos os testes finais (4 contextos: bom, chuva, só sol, só calor)
+neste README são medidos com a rede **congelada** (STDP desligado,
+`stdp=False`): medir não pode treinar. Avaliar com o STDP clássico
+ligado treina durante a avaliação — os contextos finais, por último na
+ordem bom→chuva→só sol→só calor, ganham +1 disparo — e dá números
+diferentes da mesma rede (B16: dia de chuva 8 VAI treinando, 9
+congelado; só calor 6 treinando, 7 congelado; margens-base A16 9 vs 8,
+B16 19 vs 17, B40 21 vs 19; os acertos não mudam, 2/4). As seções
+escritas antes de 20/11 usavam a medição com STDP ligado e foram
+corrigidas abaixo para a congelada — onde mudou, o valor antigo está
+entre parênteses. Scripts com elegibilidade (Exp 1, Exp 3, homeostase)
+já não treinavam durante a avaliação (o Δw só se aplica com a
+recompensa do ensaio), então os números deles não mudaram.
+
 ## Resultado da tarefa da bicicleta (12/11/2026)
 
 Do vídeo original: sol 1,0×0,8, calor 0,7×0,5, chuva 0×−1,5, viés −0,4.
@@ -74,13 +90,17 @@ Sem treino: dia bom 5 disparos → VAI; dia de chuva 3 → VAI (errado).
 
 - **Variante A, chuva fixa em −3, STDP só em sol/calor, 16 ensaios:**
   sol 10 → 30, calor 8 → 30 (saturam no ensaio 7). Dia bom 20 VAI,
-  dia de chuva 18 VAI, só calor 6 VAI. Ganho global, não memória.
+  dia de chuva 18 VAI, só calor 7 VAI (antes 6, medido com STDP
+  ligado). Ganho global, não memória.
 - **Variante B, chuva com STDP inibitório de sinal corrigido:**
   chuva −3 → −26,41 (aprende, fica mais inibitória a cada dia de chuva
   em que o pós dispara por engano). Mas sol/calor também saturam em 30,
-  e o dia de chuva cai só de 18 para 8 VAI — continua VAI, errado.
-  Em 40 ensaios a chuva chega a −29,8 e o dia de chuva estabiliza
-  em 6 VAI: cabo de guerra nos tetos, sem separação.
+  e o dia de chuva cai só de 18 para 9 VAI (antes 8) — continua VAI,
+  errado. Em 40 ensaios a chuva chega a −29,8 e o dia de chuva
+  estabiliza em 7 VAI (antes 6): cabo de guerra nos tetos, sem
+  separação. Nota: os números de 40 ensaios da Variante B vêm do
+  Experimento 2 (`treino_memoria_especifica.py`), pois o
+  `treino_bike.py` roda só 16 ensaios.
 
 Por quê: sol e calor disparam antes do pós nos dois contextos — dia bom
 (correto) e dia de chuva (errado) — então o STDP hebbiano os potencializa
@@ -106,9 +126,9 @@ o STDP clássico e o treino original não mudaram (regressão passa).
 - **Experimento 2 — plasticidade inibitória no silêncio:** nunca dispara.
   A regra só reforça a chuva se o pós ficar em silêncio no dia de chuva,
   e o pós nunca fica (mínimo 5 disparos no dia 2). Resultado idêntico à
-  Variante B: chuva −26,41 em 16 ensaios, dia de chuva 8 VAI; em 40,
-  −29,8 e 6 VAI. A regra só ajudaria se a rede já estivesse quase em
-  silêncio — ovo e galinha.
+  Variante B: chuva −26,41 em 16 ensaios, dia de chuva 9 VAI (antes 8);
+  em 40, −29,8 e 7 VAI (antes 6). A regra só ajudaria se a rede já
+  estivesse quase em silêncio — ovo e galinha.
 - **Experimento 3 — R-STDP com atribuição de crédito (acréscimo da
   Alice, não estava nos dois desenhos):** a inibitória recebe a
   recompensa com o sinal trocado. Melhor resultado até aqui: em 16
@@ -139,7 +159,7 @@ nociva é sempre o calor, em 5/7 estados (exceto inicial e Exp3-16, onde
 ele é inerte, delta 0); a margem melhora +7/+9/+7/+4 e os acertos vão
 de 2/4 para 3/4 em A16/A40 e de 2/4 para 4/4 em B16/B40/Exp3-40, sem
 nunca piorar. O veto por rótulo piora a margem em 6/7 estados — o sol
-é a aresta mais válida (delta −13 a −22); o único acerto dele, B40, é
+é a aresta mais válida (delta −12 a −22); o único acerto dele, B40, é
 coincidência (lá o maior |w| é o calor, 30,0 x sol 29,8). Limites
 honestos: o VAI/FICA correto vem de fora; cada estado tem no máximo 1
 aresta nociva, então o veto simultâneo é exato aqui (um grafo maior
@@ -154,7 +174,9 @@ Exp 3, até 40 ensaios. Vencedor: **H1, STDP dependente do peso** — o
 potenciação some, enfraquecer continua normal. H1 em 40 ensaios: sol
 18,13, calor 8,89, chuva −12,39; bom 10 VAI, chuva 2 FICA, só sol 7
 VAI, só calor 0 FICA — **4/4**, e já em 16 ensaios também 4/4 (margem
-9). É a primeira vez que a rede acerta tudo treinando sozinha, sem veto
+9; bom 7 VAI, chuva 1 FICA, só sol 3 VAI, só calor 0 FICA — agora
+impresso pelo script, seção "Checagem aos 16 ensaios", antes só
+verificado à parte). É a primeira vez que a rede acerta tudo treinando sozinha, sem veto
 depois. H2, teto excitatório em 20: 2/4 (o calor alcança o sol do mesmo
 jeito). H3, normalização sol+calor=18: 3/4, margem 2 (fraca demais para
 disparar só com o sol). Dois cuidados honestos: a margem sozinha diria
